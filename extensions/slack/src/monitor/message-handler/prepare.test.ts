@@ -368,7 +368,9 @@ describe("slack prepareSlackMessage inbound contract", () => {
         },
         channels: { slack: { enabled: true } },
       } as OpenClawConfig,
+      appClient: { reactions: { add: vi.fn(async () => ({})) } } as any,
     });
+    slackCtx.ackReactionScope = "all";
     slackCtx.resolveUserName = async () => ({ name: "Alice" }) as any;
 
     const prepared = await prepareMessageWith(slackCtx, defaultAccount, {
@@ -383,6 +385,8 @@ describe("slack prepareSlackMessage inbound contract", () => {
     // statusReactions.enabled: false disables the status reaction controller,
     // but the plain ack reaction is still sent
     expect(prepared?.ackReactionMessageTs).toBe("1.000");
+    expect(prepared?.ackReactionPromise).not.toBeNull();
+    await expect(prepared?.ackReactionPromise).resolves.toBe(true);
   });
 
   it("includes forwarded shared attachment text in raw body", async () => {
